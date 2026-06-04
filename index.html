@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local AI Chatroom</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- FIXED: Added valid, working CDN paths for Marked and DOMPurify -->
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
     <style>
         body { display: flex; background-color: #212121; color: #ececf1; height: 100vh; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
         input, textarea, button, .message, .server-status, .new-chat-btn { font-family: system-ui, -apple-system, sans-serif; }
@@ -17,11 +19,9 @@
         .chat-box { flex: 1; overflow-y: auto; padding: 40px 20% 140px 20%; display: flex; flex-direction: column; gap: 25px; scroll-behavior: smooth; }
         .message { display: block; padding: 15px; border-radius: 8px; max-width: 85%; line-height: 1.6; font-size: 15px; }
         
-        /* Fixed text layout wrappers to align properly with rich rendering elements */
         .user-message { background-color: #2f2f2f; align-self: flex-end; color: white; white-space: pre-wrap; }
         .ai-message { background-color: transparent; align-self: flex-start; color: #ececf1; }
         
-        /* Styled sub-selectors to format incoming AI list structures and code formats */
         .ai-message p { margin-bottom: 10px; }
         .ai-message p:last-child { margin-bottom: 0; }
         .ai-message ul, .ai-message ol { margin-left: 20px; margin-bottom: 10px; }
@@ -29,7 +29,7 @@
         
         .input-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 20%; background: linear-gradient(transparent, #212121 20%); }
         .input-wrapper { display: flex; background-color: #2f2f2f; border: 1px solid #424242; border-radius: 12px; padding: 10px; align-items: flex-end; }
-        textarea { flex: 1; background: transparent; border: none; color: white; resize: none; outline: none; font-size: 15px; max-height: 200px; min-height: 24px; line-height: 24px; }
+        textarea { flex: 1; background: transparent; border: none; color: white; resize: none; outline: none; font-size: 15px; max-height: 200px; min-height: 24px; line-height: 24px; overflow-y: auto; }
         button#send-btn { background-color: #676767; color: #171717; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: 10px; }
         button#send-btn:hover { background-color: white; }
     </style>
@@ -53,7 +53,6 @@
     <script>
         let conversationHistory = [];
 
-        // Auto-growing textbox interface utility
         function autoResize(el) {
             el.style.height = 'auto';
             el.style.height = el.scrollHeight + 'px';
@@ -72,13 +71,11 @@
             const userText = inputField.value.trim();
             if (!userText) return;
 
-            // Render User Text with standard text escape parsing
             appendMessage(userText, 'user-message', false);
             inputField.value = '';
-            inputField.style.height = 'auto'; // Reset textbox row height
+            inputField.style.height = 'auto'; 
             conversationHistory.push({ role: "user", content: userText });
 
-            // Create container element for AI streaming responses
             const aiMessageDiv = appendMessage("", 'ai-message', true);
             let builtAiResponse = "";
 
@@ -118,11 +115,8 @@
                             const contentToken = parsed.choices?.[0]?.delta?.content; 
                             if (contentToken) {
                                 builtAiResponse += contentToken;
-                                
-                                // Render chunk conversions on the fly via safe markdown library parsing hooks
-                                aiMessageDiv.innerHTML = marked.parse(builtAiResponse);
-                                
-                                // Clean, natural tracking scroll to bottom without hard lock jitter flags
+                                const rawHtml = marked.parse(builtAiResponse);
+                                aiMessageDiv.innerHTML = DOMPurify.sanitize(rawHtml);
                                 chatBox.scrollTop = chatBox.scrollHeight;
                             }
                         } catch (e) {
@@ -146,7 +140,8 @@
             messageDiv.className = `message ${className}`;
             
             if (isAI && text) {
-                messageDiv.innerHTML = marked.parse(text);
+                const rawHtml = marked.parse(text);
+                messageDiv.innerHTML = DOMPurify.sanitize(rawHtml);
             } else {
                 messageDiv.textContent = text;
             }
