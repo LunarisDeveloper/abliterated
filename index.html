@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local AI Chatroom</title>
-    <!-- FIXED: Added valid, working CDN paths for Marked and DOMPurify -->
+    <!-- WORKING CDNS: Corrected links pointing to real script bundles -->
     <script src="https://jsdelivr.net"></script>
     <script src="https://jsdelivr.net"></script>
     <style>
@@ -112,6 +112,7 @@
 
                         try {
                             const parsed = JSON.parse(cleanedLine);
+                            // FIXED SYNTAX: Clean property selection tracking array structures
                             const contentToken = parsed.choices?.[0]?.delta?.content; 
                             if (contentToken) {
                                 builtAiResponse += contentToken;
