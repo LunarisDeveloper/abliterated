@@ -1,185 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local AI Chatroom</title>
+    <title>LM Studio Chatbot</title>
     <style>
-        body { display: flex; background-color: #212121; color: #ececf1; height: 100vh; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
-        input, textarea, button, .message, .server-status, .new-chat-btn { font-family: system-ui, -apple-system, sans-serif; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        .sidebar { width: 260px; background-color: #171717; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid #2f2f2f; }
-        .new-chat-btn { border: 1px solid #4d4d4d; background: transparent; color: white; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 14px; width: 100%; text-align: left; font-weight: 500; }
-        .new-chat-btn:hover { background-color: #2a2a2a; }
-        .server-status { font-size: 12px; color: #8e8e93; padding: 10px; border-top: 1px solid #2f2f2f; word-break: break-all; }
-        .chat-container { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 40px 20% 140px 20%; display: flex; flex-direction: column; gap: 25px; scroll-behavior: smooth; }
-        
-        .message { display: flex; flex-direction: column; padding: 15px; border-radius: 8px; max-width: 85%; line-height: 1.6; font-size: 15px; }
-        .user-message { background-color: #2f2f2f; align-self: flex-end; color: white; white-space: pre-wrap; }
-        .ai-message { background-color: transparent; align-self: flex-start; color: #ececf1; }
-        
-        .ai-message p { margin-bottom: 10px; }
-        .ai-message p:last-child { margin-bottom: 0; }
-        .ai-message ul, .ai-message ol { margin-left: 20px; margin-bottom: 10px; }
-        .ai-message code { background-color: #2a2a2a; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 14px; }
-        .ai-message pre { background-color: #171717; padding: 12px; border-radius: 6px; overflow-x: auto; margin-bottom: 10px; }
-        .ai-message pre code { background-color: transparent; padding: 0; font-size: 13px; }
-        
-        .input-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 20%; background: linear-gradient(transparent, #212121 20%); }
-        .input-wrapper { display: flex; background-color: #2f2f2f; border: 1px solid #424242; border-radius: 12px; padding: 10px; align-items: flex-end; }
-        textarea { flex: 1; background: transparent; border: none; color: white; resize: none; outline: none; font-size: 15px; max-height: 200px; min-height: 24px; line-height: 24px; overflow-y: auto; }
-        button#send-btn { background-color: #676767; color: #171717; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: 10px; }
-        button#send-btn:hover { background-color: white; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+
+        #chat {
+            height: 500px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+
+        .user {
+            color: blue;
+            margin: 10px 0;
+        }
+
+        .bot {
+            color: green;
+            margin: 10px 0;
+        }
+
+        input {
+            width: 80%;
+            padding: 10px;
+        }
+
+        button {
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <button class="new-chat-btn" onclick="clearChat()">+ New chat</button>
-        <div class="server-status">Host: http://192.168.50.204:1234</div>
-    </div>
-    <div class="chat-container">
-        <div class="chat-box" id="chatBox">
-            <div class="message ai-message">Hello! Your optimized framework is live. Hit the model with a message!</div>
-        </div>
-        <div class="input-area">
-            <div class="input-wrapper">
-                <textarea id="userInput" placeholder="Message local AI..." rows="1" oninput="autoResize(this)"></textarea>
-                <button id="send-btn" onclick="sendMessage()">Send</button>
-            </div>
-        </div>
-    </div>
-    <script>
-        let conversationHistory = [];
 
-        function autoResize(el) {
-            el.style.height = 'auto';
-            el.style.height = el.scrollHeight + 'px';
-        }
+<h1>LM Studio Chat</h1>
 
-        // Custom lightweight markdown renderer to replace external CDNs safely
-        function parseMarkdown(text) {
-            // Escape HTML tags to prevent XSS injection securely
-            let safeText = text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+<div id="chat"></div>
 
-            // Handle multi-line code blocks
-            safeText = safeText.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+<input id="message" placeholder="Type a message...">
+<button onclick="sendMessage()">Send</button>
 
-            // Handle inline code blocks
-            safeText = safeText.replace(/`([^`]+)`/g, '<code>$1</code>');
+<script>
+const messages = [
+    {
+        role: "system",
+        content: "You are a helpful assistant."
+    }
+];
 
-            // Handle basic unordered lists
-            safeText = safeText.replace(/^\s*[\-\*]\s+(.+)$/gm, '<li>$1</li>');
-            safeText = safeText.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+async function sendMessage() {
+    const input = document.getElementById("message");
+    const chat = document.getElementById("chat");
 
-            // Handle paragraphs safely
-            const paragraphs = safeText.split('\n\n');
-            return paragraphs.map(p => {
-                if (p.trim().startsWith('<pre>') || p.trim().startsWith('<ul>')) return p;
-                return `<p>${p.replace(/\n/g, '<br>')}</p>`;
-            }).join('');
-        }
+    const text = input.value.trim();
+    if (!text) return;
 
-        document.getElementById('userInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+    chat.innerHTML += `<div class="user"><b>You:</b> ${text}</div>`;
+
+    messages.push({
+        role: "user",
+        content: text
+    });
+
+    input.value = "";
+
+    try {
+        const response = await fetch(
+            "http://192.168.50.204:1234/v1/chat/completions",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: "huihui-moe-5b-a1.7b-abliterated",
+                    messages: messages,
+                    temperature: 0.7
+                })
             }
+        );
+
+        const data = await response.json();
+
+        const reply =
+            data.choices[0].message.content;
+
+        messages.push({
+            role: "assistant",
+            content: reply
         });
 
-        async function sendMessage() {
-            const inputField = document.getElementById('userInput');
-            const chatBox = document.getElementById('chatBox');
-            const userText = inputField.value.trim();
-            if (!userText) return;
+        chat.innerHTML +=
+            `<div class="bot"><b>Bot:</b> ${reply}</div>`;
 
-            appendMessage(userText, 'user-message', false);
-            inputField.value = '';
-            inputField.style.height = 'auto'; 
-            conversationHistory.push({ role: "user", content: userText });
+        chat.scrollTop = chat.scrollHeight;
 
-            const aiMessageDiv = appendMessage("", 'ai-message', true);
-            let builtAiResponse = "";
+    } catch (err) {
+        chat.innerHTML +=
+            `<div class="bot">Connection failed.</div>`;
+        console.error(err);
+    }
+}
+</script>
 
-            try {
-                const localServerUrl = "http://192.168.50.204:1234"; 
-                
-                const response = await fetch(`${localServerUrl}/v1/chat/completions`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages: conversationHistory,
-                        temperature: 0.7,
-                        stream: true
-                    })
-                });
-
-                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder("utf-8");
-                let buffer = ""; 
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split("\n");
-                    buffer = lines.pop(); 
-
-                    for (const line of lines) {
-                        const cleanedLine = line.trim().replace(/^data: /, "");
-                        if (!cleanedLine || cleanedLine === "[DONE]") continue;
-
-                        try {
-                            const parsed = JSON.parse(cleanedLine);
-                            const contentToken = parsed.choices?.[0]?.delta?.content; 
-                            if (contentToken) {
-                                builtAiResponse += contentToken;
-                                aiMessageDiv.innerHTML = parseMarkdown(builtAiResponse);
-                                chatBox.scrollTop = chatBox.scrollHeight;
-                            }
-                        } catch (e) {
-                            console.warn("Fragment skip check:", cleanedLine, e);
-                        }
-                    }
-                }
-                
-                conversationHistory.push({ role: "assistant", content: builtAiResponse });
-            } catch (error) {
-                console.error("Critical Connection Dump:", error);
-                aiMessageDiv.innerText = "Error: Connection failed. Check if your browser is blocking Mixed Content or if LM Studio went offline.";
-                aiMessageDiv.style.color = "#ff4a4a";
-            }
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function appendMessage(text, className, isAI) {
-            const chatBox = document.getElementById('chatBox');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${className}`;
-            
-            if (isAI && text) {
-                messageDiv.innerHTML = parseMarkdown(text);
-            } else {
-                messageDiv.textContent = text;
-            }
-            
-            chatBox.appendChild(messageDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
-            return messageDiv;
-        }
-
-        function clearChat() {
-            document.getElementById('chatBox').innerHTML = `<div class="message ai-message">Fresh session started.</div>`;
-            conversationHistory = [];
-        }
-    </script>
 </body>
 </html>
