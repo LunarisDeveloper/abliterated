@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local AI Chatroom</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body { display: flex; background-color: #212121; color: #ececf1; height: 100vh; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
         input, textarea, button, .message, .server-status, .new-chat-btn { font-family: system-ui, -apple-system, sans-serif; }
@@ -13,14 +14,23 @@
         .new-chat-btn:hover { background-color: #2a2a2a; }
         .server-status { font-size: 12px; color: #8e8e93; padding: 10px; border-top: 1px solid #2f2f2f; word-break: break-all; }
         .chat-container { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 40px 20% 120px 20%; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
-        .message { display: flex; padding: 15px; border-radius: 8px; max-width: 85%; line-height: 1.6; font-size: 15px; white-space: pre-wrap; }
-        .user-message { background-color: #2f2f2f; align-self: flex-end; color: white; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 40px 20% 140px 20%; display: flex; flex-direction: column; gap: 25px; scroll-behavior: smooth; }
+        .message { display: block; padding: 15px; border-radius: 8px; max-width: 85%; line-height: 1.6; font-size: 15px; }
+        
+        /* Fixed text layout wrappers to align properly with rich rendering elements */
+        .user-message { background-color: #2f2f2f; align-self: flex-end; color: white; white-space: pre-wrap; }
         .ai-message { background-color: transparent; align-self: flex-start; color: #ececf1; }
+        
+        /* Styled sub-selectors to format incoming AI list structures and code formats */
+        .ai-message p { margin-bottom: 10px; }
+        .ai-message p:last-child { margin-bottom: 0; }
+        .ai-message ul, .ai-message ol { margin-left: 20px; margin-bottom: 10px; }
+        .ai-message code { background-color: #2a2a2a; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 14px; }
+        
         .input-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 20%; background: linear-gradient(transparent, #212121 20%); }
-        .input-wrapper { display: flex; background-color: #2f2f2f; border: 1px solid #424242; border-radius: 12px; padding: 10px; }
-        textarea { flex: 1; background: transparent; border: none; color: white; resize: none; outline: none; font-size: 15px; max-height: 200px; }
-        button#send-btn { background-color: #676767; color: #171717; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .input-wrapper { display: flex; background-color: #2f2f2f; border: 1px solid #424242; border-radius: 12px; padding: 10px; align-items: flex-end; }
+        textarea { flex: 1; background: transparent; border: none; color: white; resize: none; outline: none; font-size: 15px; max-height: 200px; min-height: 24px; line-height: 24px; }
+        button#send-btn { background-color: #676767; color: #171717; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: 10px; }
         button#send-btn:hover { background-color: white; }
     </style>
 </head>
@@ -35,13 +45,20 @@
         </div>
         <div class="input-area">
             <div class="input-wrapper">
-                <textarea id="userInput" placeholder="Message local AI..." rows="1"></textarea>
+                <textarea id="userInput" placeholder="Message local AI..." rows="1" oninput="autoResize(this)"></textarea>
                 <button id="send-btn" onclick="sendMessage()">Send</button>
             </div>
         </div>
     </div>
     <script>
         let conversationHistory = [];
+
+        // Auto-growing textbox interface utility
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        }
+
         document.getElementById('userInput').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -55,11 +72,14 @@
             const userText = inputField.value.trim();
             if (!userText) return;
 
-            appendMessage(userText, 'user-message');
+            // Render User Text with standard text escape parsing
+            appendMessage(userText, 'user-message', false);
             inputField.value = '';
+            inputField.style.height = 'auto'; // Reset textbox row height
             conversationHistory.push({ role: "user", content: userText });
 
-            const aiMessageDiv = appendMessage("", 'ai-message');
+            // Create container element for AI streaming responses
+            const aiMessageDiv = appendMessage("", 'ai-message', true);
             let builtAiResponse = "";
 
             try {
@@ -67,13 +87,10 @@
                 
                 const response = await fetch(`${localServerUrl}/v1/chat/completions`, {
                     method: "POST",
-                    headers: { 
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         messages: conversationHistory,
                         temperature: 0.7,
-                        // FIXED: Removed the invalid max_tokens out-of-bounds trigger entirely
                         stream: true
                     })
                 });
@@ -90,7 +107,6 @@
 
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split("\n");
-                    
                     buffer = lines.pop(); 
 
                     for (const line of lines) {
@@ -99,16 +115,17 @@
 
                         try {
                             const parsed = JSON.parse(cleanedLine);
-                            // FIXED: Implemented array optional-chaining tracking rules
                             const contentToken = parsed.choices?.[0]?.delta?.content; 
                             if (contentToken) {
                                 builtAiResponse += contentToken;
-                                aiMessageDiv.textContent = builtAiResponse; 
-                                // FIXED: Swapped out unreliable wrapper manipulation for dynamic scrollIntoView tracking
-                                aiMessageDiv.scrollIntoView({ behavior: 'auto', block: 'end' });
+                                
+                                // Render chunk conversions on the fly via safe markdown library parsing hooks
+                                aiMessageDiv.innerHTML = marked.parse(builtAiResponse);
+                                
+                                // Clean, natural tracking scroll to bottom without hard lock jitter flags
+                                chatBox.scrollTop = chatBox.scrollHeight;
                             }
                         } catch (e) {
-                            // FIXED: Exposed parsing data fragments directly to inspector console log rules
                             console.warn("Fragment skip check:", cleanedLine, e);
                         }
                     }
@@ -123,13 +140,19 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        function appendMessage(text, className) {
+        function appendMessage(text, className, isAI) {
             const chatBox = document.getElementById('chatBox');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
-            messageDiv.textContent = text;
+            
+            if (isAI && text) {
+                messageDiv.innerHTML = marked.parse(text);
+            } else {
+                messageDiv.textContent = text;
+            }
+            
             chatBox.appendChild(messageDiv);
-            messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            chatBox.scrollTop = chatBox.scrollHeight;
             return messageDiv;
         }
 
