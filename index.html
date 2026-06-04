@@ -28,15 +28,15 @@
 <body>
     <div class="sidebar">
         <button class="new-chat-btn" onclick="clearChat()">+ New chat</button>
-        <div class="server-status">Tunnel connection established.</div>
+        <div class="server-status">Host: http://192.168.50.204:1234</div>
     </div>
     <div class="chat-container">
         <div class="chat-box" id="chatBox">
-            <div class="message ai-message">Hello! Your encrypted tunnel framework is live. Hit the model with a message!</div>
+            <div class="message ai-message">Hello! Your local framework is live. Hit the model with a message!</div>
         </div>
         <div class="input-area">
             <div class="input-wrapper">
-                <textarea id="userInput" placeholder="Message Cloud-Routed AI..." rows="1"></textarea>
+                <textarea id="userInput" placeholder="Message local AI..." rows="1"></textarea>
                 <button id="send-btn" onclick="sendMessage()">Send</button>
             </div>
         </div>
@@ -64,15 +64,13 @@
             let builtAiResponse = "";
 
             try {
-                // Change this variable to match your active localtunnel address string
-                const secureTunnelUrl = "https://ablated-gpt.localtunnel.me"; 
+                // FIXED: Direct point to your local network IP server address
+                const localServerUrl = "http://192.168.50.204:1234"; 
                 
-                const response = await fetch(`${secureTunnelUrl}/v1/chat/completions`, {
+                const response = await fetch(`${localServerUrl}/v1/chat/completions`, {
                     method: "POST",
                     headers: { 
-                        "Content-Type": "application/json",
-                        // FIXED: Added placeholder bearer token authorization header to satisfy LM Studio auth configs
-                        "Authorization": "Bearer lm-studio" 
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
                         messages: conversationHistory,
@@ -111,7 +109,7 @@
                 }
                 conversationHistory.push({ role: "assistant", content: builtAiResponse });
             } catch (error) {
-                aiMessageDiv.innerText = "Error: Global fetch handshake failed. Ensure localtunnel execution terminal remains active.";
+                aiMessageDiv.innerText = "Error: Connection failed. Check if Firefox is blocking Mixed Content or if LM Studio went offline.";
                 aiMessageDiv.style.color = "#ff4a4a";
             }
             chatBox.scrollTop = chatBox.scrollHeight;
