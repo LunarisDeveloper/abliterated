@@ -5,18 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local AI Chatroom</title>
     <style>
-        /* 1. TRUE CUSTOM FONT IMPORT: Directly pulls font files from the web */
+        /* Directly pulls font files from Google's CDN */
         @import url('https://googleapis.com');
 
-        /* 2. APPLICATION: Forces browser to render using the custom font */
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Plus Jakarta Sans', sans-serif !important; 
+        /* Set the custom font directly on the top-level body framework */
+        body { 
+            display: flex; 
+            background-color: #212121; 
+            color: #ececf1; 
+            height: 100vh; 
+            overflow: hidden; 
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Explicitly apply the custom font properties to all text elements safely */
+        input, textarea, button, .message, .server-status, .new-chat-btn {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
-        body { display: flex; background-color: #212121; color: #ececf1; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
         /* Left Sidebar UI Layout */
         .sidebar { width: 260px; background-color: #171717; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid #2f2f2f; }
@@ -125,7 +132,7 @@
                                 chatBox.scrollTop = chatBox.scrollHeight;
                             }
                         } catch (e) {
-                            // Suppress partial fragments
+                            // Skip partial frame updates
                         }
                     }
                 }
