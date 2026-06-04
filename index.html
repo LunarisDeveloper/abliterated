@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local AI Chatroom</title>
     <style>
-        /* No imports at all - uses clean, native system sans-serif fonts directly */
         body { display: flex; background-color: #212121; color: #ececf1; height: 100vh; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
         input, textarea, button, .message, .server-status, .new-chat-btn { font-family: system-ui, -apple-system, sans-serif; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,7 +13,7 @@
         .new-chat-btn:hover { background-color: #2a2a2a; }
         .server-status { font-size: 12px; color: #8e8e93; padding: 10px; border-top: 1px solid #2f2f2f; word-break: break-all; }
         .chat-container { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 40px 20% 120px 20%; display: flex; flex-direction: column; gap: 20px; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 40px 20% 120px 20%; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
         .message { display: flex; padding: 15px; border-radius: 8px; max-width: 85%; line-height: 1.6; font-size: 15px; white-space: pre-wrap; }
         .user-message { background-color: #2f2f2f; align-self: flex-end; color: white; }
         .ai-message { background-color: transparent; align-self: flex-start; color: #ececf1; }
@@ -32,7 +31,7 @@
     </div>
     <div class="chat-container">
         <div class="chat-box" id="chatBox">
-            <div class="message ai-message">Hello! Your local framework is live. Hit the model with a message!</div>
+            <div class="message ai-message">Hello! Your optimized framework is live. Hit the model with a message!</div>
         </div>
         <div class="input-area">
             <div class="input-wrapper">
@@ -74,22 +73,25 @@
                     body: JSON.stringify({
                         messages: conversationHistory,
                         temperature: 0.7,
-                        max_tokens: -1,
+                        // FIXED: Removed the invalid max_tokens out-of-bounds trigger entirely
                         stream: true
                     })
                 });
 
-                if (!response.ok) throw new Error("Server communication broken.");
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder("utf-8");
+                let buffer = ""; 
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
 
-                    const chunk = decoder.decode(value, { stream: true });
-                    const lines = chunk.split("\n");
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n");
+                    
+                    buffer = lines.pop(); 
 
                     for (const line of lines) {
                         const cleanedLine = line.trim().replace(/^data: /, "");
@@ -97,17 +99,24 @@
 
                         try {
                             const parsed = JSON.parse(cleanedLine);
-                            const contentToken = parsed.choices.delta.content;
+                            // FIXED: Implemented array optional-chaining tracking rules
+                            const contentToken = parsed.choices?.[0]?.delta?.content; 
                             if (contentToken) {
                                 builtAiResponse += contentToken;
-                                aiMessageDiv.innerText = builtAiResponse;
-                                chatBox.scrollTop = chatBox.scrollHeight;
+                                aiMessageDiv.textContent = builtAiResponse; 
+                                // FIXED: Swapped out unreliable wrapper manipulation for dynamic scrollIntoView tracking
+                                aiMessageDiv.scrollIntoView({ behavior: 'auto', block: 'end' });
                             }
-                        } catch (e) {}
+                        } catch (e) {
+                            // FIXED: Exposed parsing data fragments directly to inspector console log rules
+                            console.warn("Fragment skip check:", cleanedLine, e);
+                        }
                     }
                 }
+                
                 conversationHistory.push({ role: "assistant", content: builtAiResponse });
             } catch (error) {
+                console.error("Critical Connection Dump:", error);
                 aiMessageDiv.innerText = "Error: Connection failed. Check if your browser is blocking Mixed Content or if LM Studio went offline.";
                 aiMessageDiv.style.color = "#ff4a4a";
             }
@@ -118,9 +127,9 @@
             const chatBox = document.getElementById('chatBox');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
-            messageDiv.innerText = text;
+            messageDiv.textContent = text;
             chatBox.appendChild(messageDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
             return messageDiv;
         }
 
