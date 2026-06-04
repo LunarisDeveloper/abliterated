@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local AI Chatroom</title>
     <style>
-        @import url('https://googleapis.com');
-        body { display: flex; background-color: #212121; color: #ececf1; height: 100vh; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; }
-        input, textarea, button, .message, .server-status, .new-chat-btn { font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* No imports at all - uses clean, native system sans-serif fonts directly */
+        body { display: flex; background-color: #212121; color: #ececf1; height: 100vh; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
+        input, textarea, button, .message, .server-status, .new-chat-btn { font-family: system-ui, -apple-system, sans-serif; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         .sidebar { width: 260px; background-color: #171717; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid #2f2f2f; }
         .new-chat-btn { border: 1px solid #4d4d4d; background: transparent; color: white; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 14px; width: 100%; text-align: left; font-weight: 500; }
@@ -64,7 +64,6 @@
             let builtAiResponse = "";
 
             try {
-                // FIXED: Direct point to your local network IP server address
                 const localServerUrl = "http://192.168.50.204:1234"; 
                 
                 const response = await fetch(`${localServerUrl}/v1/chat/completions`, {
@@ -109,7 +108,7 @@
                 }
                 conversationHistory.push({ role: "assistant", content: builtAiResponse });
             } catch (error) {
-                aiMessageDiv.innerText = "Error: Connection failed. Check if Firefox is blocking Mixed Content or if LM Studio went offline.";
+                aiMessageDiv.innerText = "Error: Connection failed. Check if your browser is blocking Mixed Content or if LM Studio went offline.";
                 aiMessageDiv.style.color = "#ff4a4a";
             }
             chatBox.scrollTop = chatBox.scrollHeight;
