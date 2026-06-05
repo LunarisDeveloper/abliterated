@@ -6,9 +6,37 @@
 <title>YE AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">
+// ── Mobile sidebar ──
+function toggleSidebar() {
+  document.querySelector(".sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+function closeSidebar() {
+  document.querySelector(".sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+// Close sidebar when a chat is loaded on mobile
+const _loadSession = loadSession;
+loadSession = function(id) { _loadSession(id); closeSidebar(); };
+
+</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
+// ── Mobile sidebar ──
+function toggleSidebar() {
+  document.querySelector(".sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+function closeSidebar() {
+  document.querySelector(".sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+// Close sidebar when a chat is loaded on mobile
+const _loadSession = loadSession;
+loadSession = function(id) { _loadSession(id); closeSidebar(); };
+
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -214,9 +242,52 @@ textarea::placeholder{color:var(--text3)}
 .send:disabled{opacity:.35;cursor:not-allowed;transform:none}
 .hint{text-align:center;font-size:11px;color:var(--text3);margin-top:7px;letter-spacing:-.01em}
 .input-outer{display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding:0 0 0}
+
+/* ── Mobile ── */
+@media(max-width:768px){
+  .sidebar{
+    position:fixed;top:0;left:0;height:100%;
+    width:80vw;max-width:300px;
+    transform:translateX(-100%);
+    transition:transform .25s ease;
+    z-index:100;
+  }
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,.5);z-index:99;
+    backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+  }
+  .sidebar-overlay.show{display:block}
+  .main{width:100%}
+  .main-titlebar{
+    justify-content:space-between;
+    padding:0 16px;
+  }
+  .hamburger{
+    width:32px;height:32px;border-radius:8px;
+    background:none;border:none;
+    color:var(--text2);cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+    flex-shrink:0;
+  }
+  .hamburger span{
+    display:block;width:18px;height:1.5px;
+    background:currentColor;border-radius:2px;
+    transition:transform .2s,opacity .2s;
+  }
+  .msg-wrap{padding:4px 16px}
+  .input-zone{padding:8px 16px 16px}
+  .chat-scroll{padding:16px 0 8px}
+}
+@media(min-width:769px){
+  .hamburger{display:none}
+  .sidebar-overlay{display:none!important}
+}
 </style>
 </head>
 <body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="window">
 
   <div class="sidebar">
@@ -245,7 +316,7 @@ textarea::placeholder{color:var(--text3)}
 
   <div class="main">
     <div class="main-titlebar">
-      <span class="conv-title" id="convTitle">New Conversation</span>
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu"><span></span><span></span><span></span></button><span class="conv-title" id="convTitle">New Conversation</span><div style="width:32px"></div>
     </div>
 
     <div class="chat-scroll" id="chatScroll">
@@ -465,6 +536,20 @@ if (sessions.length > 0) {
 } else {
   renderSidebar();
 }
+
+// ── Mobile sidebar ──
+function toggleSidebar() {
+  document.querySelector(".sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+function closeSidebar() {
+  document.querySelector(".sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+// Close sidebar when a chat is loaded on mobile
+const _loadSession = loadSession;
+loadSession = function(id) { _loadSession(id); closeSidebar(); };
+
 </script>
 </body>
 </html>
