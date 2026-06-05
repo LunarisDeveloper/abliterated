@@ -414,7 +414,7 @@ async function send() {
   try {
     const res = await fetch(API + "/chat/completions", {
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{"Content-Type":"application/json","ngrok-skip-browser-warning":"true","Accept":"application/json"},
       body:JSON.stringify({ model, messages:sess.messages, stream:true, temperature:0.7 })
     });
     const reader = res.body.getReader();
@@ -450,15 +450,56 @@ async function send() {
 
 // ── Model load ──
 async function loadModel() {
+  const mnameEl = document.getElementById("mname");
+  const mdotEl  = document.getElementById("mdot");
+
+  // Headers needed to bypass ngrok's browser-warning interstitial
+  const headers = {
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
+    "Accept": "application/json"
+  };
+
+  // Try /models first
   try {
-    const r = await fetch(API + "/models");
-    const d = await r.json();
-    model = d.data[0].id;
-    document.getElementById("mname").textContent = model;
-  } catch {
-    document.getElementById("mname").textContent = "Model unavailable";
-    document.getElementById("mdot").classList.add("err");
-  }
+    const r = await fetch(API + "/models", { headers });
+    if (r.ok) {
+      const d = await r.json();
+      // LM Studio can return models under d.data or d (array)
+      const list = Array.isArray(d) ? d : (d.data || []);
+      if (list.length > 0) {
+        model = list[0].id;
+        mnameEl.textContent = model;
+        return;
+      }
+    }
+  } catch {}
+
+  // Fallback: send a tiny completion to extract the model id from the response
+  try {
+    const r = await fetch(API + "/chat/completions", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        messages: [{ role:"user", content:"hi" }],
+        max_tokens: 1,
+        stream: false
+      })
+    });
+    if (r.ok) {
+      const d = await r.json();
+      const id = d.model || (d.choices?.[0]?.message && model);
+      if (id) {
+        model = id;
+        mnameEl.textContent = model;
+        return;
+      }
+    }
+  } catch {}
+
+  // Both failed — show error state
+  mnameEl.textContent = "Model unavailable";
+  mdotEl.classList.add("err");
 }
 
 // ── Init ──
