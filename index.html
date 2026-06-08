@@ -298,7 +298,7 @@ function renderBubble(role, text, animate=true) {
   const isUser = role === "user";
   const html = isUser ? `<span>${esc(text)}</span>` : marked.parse(text);
   wrap.innerHTML = `
-    <div class="msg-row ${isUser ? "user" : "ai"}">
+    <div class="msg-row ${isUser ? "user" : "YE"}">
       <div class="av ${isUser ? "u" : "a"}">${isUser ? "U" : "AI"}</div>
       <div class="bubble">${html}</div>
     </div>`;
