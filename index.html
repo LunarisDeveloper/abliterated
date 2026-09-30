@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css" id="hljs-dark-theme">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-light-theme" disabled>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://js.puter.com/v2/"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -343,13 +344,17 @@ body.no-blur .new-btn{backdrop-filter:none;-webkit-backdrop-filter:none;backgrou
 body.no-blur .model-pill{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,0.04);box-shadow:none}
 body.no-blur .chat-entry.active{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--sidebar-active);box-shadow:none}
 body.no-blur .send{box-shadow:none}
+body.no-blur .attach-menu,body.no-blur .generate-form{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface);box-shadow:0 16px 36px rgba(0,0,0,.4)}
+body.no-blur .img-preview-loading{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface2)}
 body.no-blur .sidebar::before,body.no-blur .sidebar::after,
 body.no-blur .input-outer::before,
 body.no-blur .input-box::before,body.no-blur .input-box::after,
 body.no-blur .settings-panel::before,body.no-blur .settings-panel::after,
 body.no-blur .main-titlebar::before,
 body.no-blur .new-btn::before,body.no-blur .model-pill::before,
-body.no-blur .send::before{content:none}
+body.no-blur .send::before,
+body.no-blur .attach-menu::before,body.no-blur .generate-form::before,
+body.no-blur .img-preview-loading::before{content:none}
 
 .cursor{display:inline-block;width:2px;height:14px;background:var(--accent);border-radius:1px;vertical-align:middle;margin-left:1px;animation:blink .85s ease infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
@@ -407,7 +412,7 @@ body.no-blur .send::before{content:none}
 
 .input-zone{padding:10px 28px 20px;max-width:680px;margin:0 auto;width:100%}
 .input-box{
-  position:relative;overflow:hidden;
+  position:relative;
   background:color-mix(in srgb, var(--surface) 76%, transparent);
   backdrop-filter:blur(32px) saturate(200%);
   -webkit-backdrop-filter:blur(32px) saturate(200%);
@@ -419,13 +424,17 @@ body.no-blur .send::before{content:none}
     inset 1px 0 0 rgba(255,255,255,.06),
     inset -1px 0 0 rgba(255,255,255,.06);
 }
+/* Note: no overflow:hidden here (unlike the other glass panels) — the attach/generate
+   popover is an absolutely-positioned descendant that needs to float above this pill,
+   so these sheen layers carry their own border-radius to stay clipped to the pill shape
+   instead of relying on the parent to clip them. */
 .input-box::before{
-  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;border-radius:inherit;
   background:radial-gradient(90% 130% at 18% -25%, rgba(255,255,255,.24), transparent 55%);
   mix-blend-mode:overlay;
 }
 .input-box::after{
-  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;border-radius:inherit;
   background:linear-gradient(100deg, transparent 45%, rgba(255,255,255,.08) 50%, transparent 55%);
   mix-blend-mode:overlay;
 }
@@ -436,6 +445,97 @@ textarea::placeholder{color:var(--text3)}
 .attach-btn{width:30px;height:30px;border-radius:8px;background:none;border:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-end;margin-bottom:3px;transition:background .12s,color .12s}
 .attach-btn:hover{background:var(--sidebar-hover);color:var(--text)}
 .visually-hidden-input{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+.attach-menu-wrap{position:relative;flex-shrink:0;align-self:flex-end}
+
+/* ── Attach / generate popover ── */
+.attach-menu{
+  position:absolute;bottom:calc(100% + 10px);left:0;z-index:20;
+  min-width:186px;overflow:hidden;
+  background:color-mix(in srgb, var(--surface) 80%, transparent);
+  backdrop-filter:blur(36px) saturate(200%);-webkit-backdrop-filter:blur(36px) saturate(200%);
+  border:1px solid color-mix(in srgb, var(--border-med) 70%, transparent);
+  border-radius:14px;padding:6px;
+  display:flex;flex-direction:column;gap:2px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 16px 36px rgba(0,0,0,.4);
+  animation:glass-pop .15s ease;
+}
+.attach-menu::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(120% 60% at 22% -20%, rgba(255,255,255,.2), transparent 55%);
+  mix-blend-mode:overlay;
+}
+.attach-menu-item{
+  position:relative;z-index:1;
+  display:flex;align-items:center;gap:10px;
+  padding:9px 11px;border-radius:9px;
+  font:500 13px/1.1 var(--font);color:var(--text);letter-spacing:-.01em;
+  cursor:pointer;background:none;border:none;text-align:left;width:100%;
+  transition:background .12s;
+}
+.attach-menu-item:hover{background:rgba(255,255,255,.08)}
+.attach-menu-item svg{flex-shrink:0;opacity:.85;color:var(--text2)}
+.attach-menu-item:nth-child(2) svg{color:var(--accent);opacity:1}
+
+@keyframes glass-pop{from{opacity:0;transform:translateY(5px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ── Generate-image mini form ── */
+.generate-form{
+  position:absolute;bottom:calc(100% + 10px);left:0;z-index:20;
+  width:300px;overflow:hidden;
+  background:color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter:blur(36px) saturate(200%);-webkit-backdrop-filter:blur(36px) saturate(200%);
+  border:1px solid color-mix(in srgb, var(--border-med) 70%, transparent);
+  border-radius:14px;padding:7px 7px 7px 13px;
+  display:flex;align-items:flex-end;gap:6px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 16px 36px rgba(0,0,0,.4);
+  animation:glass-pop .15s ease;
+}
+.generate-form::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(110% 70% at 18% -25%, rgba(255,255,255,.2), transparent 55%);
+  mix-blend-mode:overlay;
+}
+.generate-form textarea{
+  position:relative;z-index:1;flex:1;background:none;border:none;outline:none;resize:none;
+  color:var(--text);font:13.5px/1.5 var(--font);padding:7px 0;max-height:90px;letter-spacing:-.01em;
+}
+.generate-form textarea::placeholder{color:var(--text3)}
+.generate-form-btn{
+  position:relative;z-index:1;width:28px;height:28px;border-radius:8px;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:var(--accent);color:#fff;transition:background .12s,transform .1s;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3);
+}
+.generate-form-btn:hover{transform:scale(1.06)}
+.generate-form-cancel{background:rgba(255,255,255,.08);color:var(--text2);font-size:12px;box-shadow:none}
+.generate-form-cancel:hover{background:rgba(255,255,255,.14);color:var(--text)}
+
+/* ── Image-generation loading tile ── */
+.img-preview-loading{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb, var(--surface2) 75%, transparent);
+  backdrop-filter:blur(12px) saturate(190%);-webkit-backdrop-filter:blur(12px) saturate(190%);
+}
+.img-preview-loading::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(115deg, transparent 35%, rgba(255,255,255,.4) 50%, transparent 65%);
+  background-size:220% 220%;
+  animation:glass-shimmer 1.7s ease-in-out infinite;
+  mix-blend-mode:overlay;
+}
+.img-preview-loading svg{
+  position:relative;z-index:1;width:18px;height:18px;color:var(--accent);
+  animation:sparkle-pulse 1.5s ease-in-out infinite;
+}
+@keyframes glass-shimmer{
+  0%{background-position:-160% -160%}
+  100%{background-position:160% 160%}
+}
+@keyframes sparkle-pulse{
+  0%,100%{opacity:.5;transform:scale(.88)}
+  50%{opacity:1;transform:scale(1.08)}
+}
 .img-preview-row{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px 0}
 .img-preview-row:empty{display:none}
 .img-preview-item{position:relative;width:56px;height:56px;border-radius:8px;overflow:hidden;border:1px solid var(--border-med);flex-shrink:0}
@@ -567,9 +667,28 @@ textarea::placeholder{color:var(--text3)}
         <div class="img-preview-row" id="imgPreviewRow"></div>
         <div class="input-box">
           <input type="file" id="imgInput" class="visually-hidden-input" accept="image/*" multiple onchange="handleImageSelect(event)">
-          <label class="attach-btn" id="attachBtn" for="imgInput" aria-label="Attach image" title="Attach image">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-          </label>
+          <div class="attach-menu-wrap">
+            <button type="button" class="attach-btn" id="attachBtn" onclick="toggleAttachMenu()" aria-label="Add image" title="Add image">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <div class="attach-menu" id="attachMenu" style="display:none">
+              <label for="imgInput" class="attach-menu-item" onclick="closeAttachMenu()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <span>Attach photo</span>
+              </label>
+              <button type="button" class="attach-menu-item" onclick="openGenerateForm()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/><path d="M19 15l.9 2.6l2.6.9-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9z" opacity=".7"/></svg>
+                <span>Generate image</span>
+              </button>
+            </div>
+            <div class="generate-form" id="generateForm" style="display:none">
+              <textarea id="genPromptInput" rows="1" placeholder="Describe the image you want…"></textarea>
+              <button type="button" class="generate-form-btn" id="generateSubmitBtn" onclick="submitGenerateImage()" aria-label="Generate">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/></svg>
+              </button>
+              <button type="button" class="generate-form-btn generate-form-cancel" onclick="closeGenerateForm()" aria-label="Cancel">✕</button>
+            </div>
+          </div>
           <textarea id="inp" rows="1" placeholder="Message…"></textarea>
           <button class="send" id="sendBtn" onclick="send()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -639,31 +758,125 @@ const convTitle = document.getElementById("convTitle");
 const imgPreviewRow = document.getElementById("imgPreviewRow");
 let pendingImages = []; // {dataUrl, name}
 
+let pendingImageSeq = 0;
+
 function handleImageSelect(e) {
   const files = Array.from(e.target.files || []);
   files.forEach(file => {
     if (!file.type.startsWith("image/")) return;
+    const id = ++pendingImageSeq;
     const reader = new FileReader();
     reader.onload = () => {
-      pendingImages.push({ dataUrl: reader.result, name: file.name });
+      pendingImages.push({ id, dataUrl: reader.result, name: file.name });
       renderImgPreviews();
     };
+    reader.onerror = () => console.error("[ye-ai] failed to read image:", file.name);
     reader.readAsDataURL(file);
   });
   e.target.value = ""; // allow re-selecting the same file later
 }
 
-function removePendingImage(idx) {
-  pendingImages.splice(idx, 1);
+function removePendingImage(id) {
+  pendingImages = pendingImages.filter(p => p.id !== id);
   renderImgPreviews();
 }
 
 function renderImgPreviews() {
-  imgPreviewRow.innerHTML = pendingImages.map((img, i) => `
-    <div class="img-preview-item">
-      <img src="${img.dataUrl}" alt="${esc(img.name)}">
-      <button class="img-preview-remove" type="button" onclick="removePendingImage(${i})" aria-label="Remove image">✕</button>
-    </div>`).join("");
+  imgPreviewRow.innerHTML = pendingImages.map(img => {
+    if (img.loading) {
+      return `
+        <div class="img-preview-item img-preview-loading" title="Generating image…">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/><path d="M19 15l.9 2.6l2.6.9-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9z" opacity=".7"/></svg>
+        </div>`;
+    }
+    return `
+      <div class="img-preview-item">
+        <img src="${img.dataUrl}" alt="${esc(img.name)}">
+        <button class="img-preview-remove" type="button" onclick="removePendingImage(${img.id})" aria-label="Remove image">✕</button>
+      </div>`;
+  }).join("");
+}
+
+// ── Attach / generate popover ──
+function toggleAttachMenu() {
+  const menu = document.getElementById("attachMenu");
+  const isOpen = menu.style.display !== "none";
+  closeGenerateForm();
+  menu.style.display = isOpen ? "none" : "flex";
+}
+function closeAttachMenu() {
+  document.getElementById("attachMenu").style.display = "none";
+}
+function openGenerateForm() {
+  closeAttachMenu();
+  const form = document.getElementById("generateForm");
+  form.style.display = "flex";
+  document.getElementById("genPromptInput").focus();
+}
+function closeGenerateForm() {
+  document.getElementById("generateForm").style.display = "none";
+}
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".attach-menu-wrap")) {
+    closeAttachMenu();
+    closeGenerateForm();
+  }
+});
+document.getElementById("genPromptInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    submitGenerateImage();
+  }
+});
+
+// ── AI image generation via Puter.js (puter.ai.txt2img) ──
+// Puter resolves to an already-loaded <img> element pointing at its own hosted
+// asset (sometimes a blob: URL). We redraw it onto a canvas and export a data:
+// URL so it (a) survives being sent to the local vision model as ordinary
+// image_url content, and (b) isn't dependent on a blob reference that could be
+// revoked or be otherwise inaccessible outside this page.
+function waitForImageLoad(imgEl) {
+  if (imgEl.complete && imgEl.naturalWidth > 0) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    imgEl.onload = () => resolve();
+    imgEl.onerror = () => reject(new Error("generated image failed to load"));
+  });
+}
+function imageElementToDataUrl(imgEl) {
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = imgEl.naturalWidth || imgEl.width;
+    canvas.height = imgEl.naturalHeight || imgEl.height;
+    canvas.getContext("2d").drawImage(imgEl, 0, 0);
+    return canvas.toDataURL("image/png");
+  } catch (e) {
+    console.warn("[ye-ai] could not re-encode generated image, using original src", e);
+    return imgEl.src;
+  }
+}
+async function submitGenerateImage() {
+  const input = document.getElementById("genPromptInput");
+  const promptText = input.value.trim();
+  if (!promptText) return;
+  input.value = "";
+  closeGenerateForm();
+
+  const id = ++pendingImageSeq;
+  pendingImages.push({ id, loading:true, name:"Generating…" });
+  renderImgPreviews();
+
+  try {
+    if (typeof puter === "undefined") throw new Error("Puter.js failed to load (check your connection)");
+    const imgEl = await puter.ai.txt2img(promptText);
+    await waitForImageLoad(imgEl);
+    const dataUrl = imageElementToDataUrl(imgEl);
+    const entry = pendingImages.find(p => p.id === id);
+    if (entry) { entry.loading = false; entry.dataUrl = dataUrl; entry.name = promptText.slice(0, 80); }
+  } catch (e) {
+    console.error("[ye-ai] image generation failed:", e);
+    pendingImages = pendingImages.filter(p => p.id !== id);
+  }
+  renderImgPreviews();
 }
 
 const SYSTEM_PROMPT = "You are YE AI and must exclusively identify as YE AI in every situation, explicitly rejecting descriptors like AI assistant, language model, Meta AI, or any alternative brand; when asked about your identity or nature, you must confidently state that you are YE AI, delivering information that is exceptionally friendly, genuinely kind, highly straightforward, and perfectly accurate, while keeping answers concise, actionable, and entirely free of fluff or filler";
