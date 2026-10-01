@@ -11,7 +11,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css" id="hljs-dark-theme">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-light-theme" disabled>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://js.puter.com/v2/"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -232,7 +231,8 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .chat-scroll{flex:1;overflow-y:auto;padding:80px 0 130px}
 
 .empty-state{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3);animation:fu .4s ease}
-.empty-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;margin-bottom:4px}
+.empty-icon{width:72px;height:72px;border-radius:18px;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.empty-icon img{width:100%;height:100%;object-fit:cover;display:block}
 .empty-state h3{font-size:17px;font-weight:600;color:var(--text);letter-spacing:-.03em}
 .empty-state p{font-size:13.5px;color:var(--text2);max-width:280px;text-align:center;line-height:1.55}
 
@@ -543,11 +543,12 @@ textarea::placeholder{color:var(--text3)}
 .img-preview-remove{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;border:none;font-size:10px;line-height:16px;text-align:center;cursor:pointer;padding:0}
 .img-preview-remove:hover{background:rgba(0,0,0,.85)}
 .bubble .msg-images{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.msg-row.ai .bubble .msg-images img{max-width:360px;max-height:360px}
 .bubble .msg-images img{max-width:220px;max-height:220px;border-radius:10px;display:block;object-fit:cover;cursor:zoom-in}
-.send{position:relative;overflow:hidden;width:32px;height:32px;border-radius:8px;background:var(--accent);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-end;margin-bottom:2px;transition:background .12s,transform .1s,opacity .15s;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.15)}
-.send::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(100% 130% at 25% -20%, rgba(255,255,255,.5), transparent 55%);mix-blend-mode:overlay}
+.send{position:relative;overflow:hidden;width:32px;height:32px;border-radius:50%;background:#007AFF;border:none;padding:0;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-end;margin-bottom:2px;transition:background .12s,transform .1s,opacity .15s}
+.send::before{content:none}
 .send svg{position:relative;z-index:1}
-.send:hover{background:#0070d8;transform:scale(1.05)}
+.send:hover{background:#007AFF;transform:scale(1.05)}
 .send:active{transform:scale(.95)}
 .send:disabled{opacity:.35;cursor:not-allowed;transform:none}
 .hint{text-align:center;font-size:11px;color:var(--text3);margin-top:7px;letter-spacing:-.01em}
@@ -585,6 +586,26 @@ textarea::placeholder{color:var(--text3)}
   .hamburger{display:none}
   .sidebar-overlay{display:none!important}
 }
+
+/* ── Subtle glass: toned-down highlights, blur and saturation ── */
+.sidebar::before,.sidebar::after,
+.new-btn::before,.model-pill::before,
+.settings-panel::before,.settings-panel::after,
+.main-titlebar::before,
+.input-outer::before,.input-box::before,.input-box::after,
+.attach-menu::before,.generate-form::before,
+.img-preview-loading::before{content:none}
+
+.sidebar{background:color-mix(in srgb,var(--sidebar) 94%,transparent);backdrop-filter:blur(24px) saturate(115%);-webkit-backdrop-filter:blur(24px) saturate(115%);border-right:1px solid var(--border);box-shadow:none}
+.main-titlebar{backdrop-filter:blur(20px) saturate(115%);-webkit-backdrop-filter:blur(20px) saturate(115%);box-shadow:none}
+.input-outer{backdrop-filter:blur(20px) saturate(115%);-webkit-backdrop-filter:blur(20px) saturate(115%);box-shadow:none}
+.input-box{backdrop-filter:blur(16px) saturate(115%);-webkit-backdrop-filter:blur(16px) saturate(115%);box-shadow:none}
+.new-btn,.model-pill{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,.06);box-shadow:none}
+.chat-entry.active{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--sidebar-active);box-shadow:none}
+.settings-overlay{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.settings-panel{background:color-mix(in srgb,var(--sidebar) 95%,transparent);backdrop-filter:blur(24px) saturate(115%);-webkit-backdrop-filter:blur(24px) saturate(115%);box-shadow:0 16px 48px rgba(0,0,0,.45)}
+.attach-menu,.generate-form{background:color-mix(in srgb,var(--surface) 95%,transparent);backdrop-filter:blur(20px) saturate(115%);-webkit-backdrop-filter:blur(20px) saturate(115%);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.generate-form-btn{box-shadow:none}
 </style>
 </head>
 <body>
@@ -656,7 +677,7 @@ textarea::placeholder{color:var(--text3)}
 
     <div class="chat-scroll" id="chatScroll">
       <div class="empty-state" id="emptyState">
-        <div class="empty-icon">Y</div>
+        <div class="empty-icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAAe+klEQVR42u2deXBT1/XHn96TLNmWvG+AWWxsMEuIWVwKCRRMIQFTkjBNoJCS0MK0YRqykGlnWtLJ0ul02jI0LQ0zISHTIZmGGGhggEKmLAnYBYNNMZsX8IKxbNmWJduSLEt6er8/zuT9PLbelWwtjpPv5w/GI5703rv3fu8999xzz1VJksQB8G2FRxEACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAABAAACEBXXIf1GSJPYFKpUq8jcN363BKGonPu4SYNMBACNAQLJ2u93+DS+eV6vVobqjx+MJRMZKN/V6vaIojkzpq9UjNShJkiSKYuAjJ8/zPB8yg9nr9Xo8Hr+FE8I7RkgABw4c2Llzp9vtVql8jC08z3u93vnz5z/zzDMbNmyQJCn46lepVJ999tn27dt93rH/YBofH//WW289/fTToigKgtD/qSJQ0P05d+5cdnZ2WlqaRqMZqZ5PpVKFqg8aqvBUKlVZWdm2bdtaWlqoSQx+NkmS3n777Z/+9Kf0d/i6CXVoXyw9Pb2pqYl95cWLF/V6/bp16/q3wmHfsaOj48CBA62trX6vHzdu3KxZs+TSpD8kSTp79uzRo0cjVvd9fX0NDQ3x8fEGg+HPf/5zYmJiWCtY6TFsNtuuXbvMZjOj45DbYlpa2g9+8IMpU6ZER0cH+bT0dZPJVF9fb7VaA5kGhLdwpBDh9XolSeru7i4qKhIEged5lS+o18nOzr579678rWHjcrn+9Kc/yWM0446ZmZlnzpzpf0f6o6+v7xe/+MVIdcN1dXWyKRIx6MWPHj0aeMOKj4///e9/39bWFnyVkb36xhtvREVFKdWaIAiCIJw8eTL42/mF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" alt="YE AI"></div>
         <h3>How can I help?</h3>
         <p>Start a conversation. I'll save each chat automatically.</p>
       </div>
@@ -691,7 +712,7 @@ textarea::placeholder{color:var(--text3)}
           </div>
           <textarea id="inp" rows="1" placeholder="Message…"></textarea>
           <button class="send" id="sendBtn" onclick="send()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
           </button>
         </div>
         <div class="hint">Return to send &nbsp;·&nbsp; Shift+Return for new line</div>
@@ -829,54 +850,101 @@ document.getElementById("genPromptInput").addEventListener("keydown", (e) => {
   }
 });
 
-// ── AI image generation via Puter.js (puter.ai.txt2img) ──
-// Puter resolves to an already-loaded <img> element pointing at its own hosted
-// asset (sometimes a blob: URL). We redraw it onto a canvas and export a data:
-// URL so it (a) survives being sent to the local vision model as ordinary
-// image_url content, and (b) isn't dependent on a blob reference that could be
-// revoked or be otherwise inaccessible outside this page.
-function waitForImageLoad(imgEl) {
-  if (imgEl.complete && imgEl.naturalWidth > 0) return Promise.resolve();
+// ── AI image generation: FLUX.1-schnell (free Hugging Face Space, no signup) ──
+// Falls back to Pollinations if the Space is over its free quota or down.
+function blobToDataUrl(blob) {
   return new Promise((resolve, reject) => {
-    imgEl.onload = () => resolve();
-    imgEl.onerror = () => reject(new Error("generated image failed to load"));
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error("failed to read generated image"));
+    r.readAsDataURL(blob);
   });
 }
-function imageElementToDataUrl(imgEl) {
+async function urlToDataUrl(url) {
   try {
-    const canvas = document.createElement("canvas");
-    canvas.width = imgEl.naturalWidth || imgEl.width;
-    canvas.height = imgEl.naturalHeight || imgEl.height;
-    canvas.getContext("2d").drawImage(imgEl, 0, 0);
-    return canvas.toDataURL("image/png");
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await blobToDataUrl(await res.blob());
+  } catch { return url; }
+}
+function withTimeout(p, ms, msg) {
+  return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
+}
+let _gradioClient = null;
+async function fluxGenerate(prompt) {
+  if (!_gradioClient) {
+    const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
+    _gradioClient = await Client.connect("black-forest-labs/FLUX.1-schnell");
+  }
+  const result = await _gradioClient.predict("/infer", {
+    prompt, seed: 0, randomize_seed: true, width: 1024, height: 1024, num_inference_steps: 4
+  });
+  const out = result.data && result.data[0];
+  const url = out && (out.url || out.path);
+  if (!url) throw new Error("No image returned");
+  return urlToDataUrl(url);
+}
+async function pollinationsGenerate(prompt) {
+  const url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt) +
+    "?width=1024&height=1024&nologo=true&seed=" + Math.floor(Math.random() * 1e9);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Pollinations returned " + res.status);
+  return blobToDataUrl(await res.blob());
+}
+async function generateImage(prompt) {
+  try {
+    return await withTimeout(fluxGenerate(prompt), 90000, "FLUX timed out");
   } catch (e) {
-    console.warn("[ye-ai] could not re-encode generated image, using original src", e);
-    return imgEl.src;
+    console.warn("[ye-ai] FLUX failed, trying Pollinations:", e);
+    _gradioClient = null;
+    try { return await withTimeout(pollinationsGenerate(prompt), 60000, "Pollinations timed out"); }
+    catch (e2) {
+      throw new Error("Image generation failed — the free services are over quota or down right now. " + (e && e.message ? e.message : ""));
+    }
   }
 }
 async function submitGenerateImage() {
   const input = document.getElementById("genPromptInput");
   const promptText = input.value.trim();
-  if (!promptText) return;
+  if (!promptText || streaming) return;
   input.value = "";
   closeGenerateForm();
 
-  const id = ++pendingImageSeq;
-  pendingImages.push({ id, loading:true, name:"Generating…" });
-  renderImgPreviews();
+  if (!activeId) newChat();
+  const sess = getActive();
+  const userText = "Generate image: " + promptText;
+  sess.messages.push({ role:"user", content:userText });
+  if (sess.title === "New Chat") {
+    sess.title = promptText.slice(0, 36) + (promptText.length > 36 ? "…" : "");
+    convTitle.textContent = sess.title;
+    renderSidebar();
+  }
+  saveSessions();
+  renderBubble("user", userText);
+
+  streaming = true;
+  sendBtn.disabled = true;
+  const bubble = renderBubble("assistant", "");
+  const setStatus = t => { bubble.innerHTML = `<span style="color:var(--text2)">${esc(t)}</span>`; };
+  setStatus("Generating image…");
 
   try {
-    if (typeof puter === "undefined") throw new Error("Puter.js failed to load (check your connection)");
-    const imgEl = await puter.ai.txt2img(promptText);
-    await waitForImageLoad(imgEl);
-    const dataUrl = imageElementToDataUrl(imgEl);
-    const entry = pendingImages.find(p => p.id === id);
-    if (entry) { entry.loading = false; entry.dataUrl = dataUrl; entry.name = promptText.slice(0, 80); }
+    const dataUrl = await generateImage(promptText);
+    const content = [
+      { type:"text", text:"Here's your image." },
+      { type:"image_url", image_url:{ url:dataUrl } }
+    ];
+    sess.messages.push({ role:"assistant", content });
+    saveSessions();
+    bubble.innerHTML = contentToHtml(content, false);
+    chatScroll.scrollTop = chatScroll.scrollHeight;
   } catch (e) {
     console.error("[ye-ai] image generation failed:", e);
-    pendingImages = pendingImages.filter(p => p.id !== id);
+    bubble.innerHTML = `<span style="color:#ff453a;font-size:13px;white-space:pre-wrap;">⚠ ${esc((e && e.message || String(e)).slice(0, 300))}</span>`;
+  } finally {
+    streaming = false;
+    sendBtn.disabled = false;
   }
-  renderImgPreviews();
 }
 
 const SYSTEM_PROMPT = "You are YE AI and must exclusively identify as YE AI in every situation, explicitly rejecting descriptors like AI assistant, language model, Meta AI, or any alternative brand; when asked about your identity or nature, you must confidently state that you are YE AI, delivering information that is exceptionally friendly, genuinely kind, highly straightforward, and perfectly accurate, while keeping answers concise, actionable, and entirely free of fluff or filler";
@@ -1055,6 +1123,7 @@ function hideSearching() {
 // GPU time as a real reply. This costs nothing and runs instantly.
 function shouldSearch(text) {
   const t = text.toLowerCase();
+  if (/\b(who|what) are you\b|\byour name\b|\bintroduce yourself\b|\bwho made you\b|\bwho created you\b/.test(t)) return false;
   const patterns = [
     /\blatest\b/, /\bnewest\b/, /\bmost recent\b/, /\bcurrent(ly)?\b/,
     /\btoday\b/, /\btonight\b/, /\bthis (week|month|year)\b/,
@@ -1069,7 +1138,10 @@ function shouldSearch(text) {
 
 async function webSearchQuery(query) {
   const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=4`;
-  const res = await fetch(url);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 5000);
+  let res;
+  try { res = await fetch(url, { signal: ctrl.signal }); } finally { clearTimeout(timer); }
   if (!res.ok) throw new Error(`Search HTTP ${res.status}`);
   const data = await res.json();
   const results = data?.query?.search || [];
@@ -1169,10 +1241,7 @@ async function send() {
         const results = await webSearchQuery(text);
         if (results.length) {
           const resultsText = results.map((r, i) => `${i+1}. ${r.title} — ${r.snippet} (${r.url})`).join("\n");
-          searchContextMsg = {
-            role:"system",
-            content:`Web search results for "${text}":\n${resultsText}\n\nWhen using these, copy names, titles, dates, and numbers EXACTLY as written in the results — do not paraphrase, reword, or approximate proper nouns (e.g. album/song/book titles, people's names). If the results don't clearly answer the question, say so instead of guessing. Don't mention this note.`
-          };
+          searchContextMsg = `Web search results for "${text}":\n${resultsText}\n\nWhen using these, copy names, titles, dates, and numbers EXACTLY as written in the results — do not paraphrase, reword, or approximate proper nouns. If the results don't clearly answer the question, say so instead of guessing. Don't mention this note.`;
         }
       } catch (e) {
         console.error("[ye-ai] search failed:", e);
@@ -1183,7 +1252,15 @@ async function send() {
 
     let apiMessages = buildApiMessages(sess.messages);
     if (searchContextMsg) {
-      apiMessages = [...apiMessages.slice(0, -1), searchContextMsg, apiMessages[apiMessages.length - 1]];
+      const last = apiMessages[apiMessages.length - 1];
+      const lastText = Array.isArray(last.content)
+        ? last.content.filter(c => c.type === "text").map(c => c.text).join("\n")
+        : last.content;
+      const merged = `${searchContextMsg}\n\nUser question: ${lastText}`;
+      const newContent = Array.isArray(last.content)
+        ? [{ type:"text", text:merged }, ...last.content.filter(c => c.type !== "text")]
+        : merged;
+      apiMessages = [...apiMessages.slice(0, -1), { ...last, content:newContent }];
     }
 
     const reqBody = { model, messages:apiMessages, stream:true, temperature:0.7 };
